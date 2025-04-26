@@ -47,7 +47,6 @@ use write::WriteSyscall;
 
 use crate::events::FieldOperation;
 
-use sp1_primitives::types::IdentityBuildHasher;
 
 
 /// A system call in the SP1 RISC-V zkVM.
