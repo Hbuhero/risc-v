@@ -1,5 +1,4 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use std::hash::{BuildHasher, Hasher};
 
 #[derive(Debug, Clone, Copy)]
 pub enum RecursionProgramType {
@@ -65,42 +64,6 @@ impl Default for Buffer {
     }
 }
 
-#[derive(Default)]
-pub struct IdentityHasher {
-    hash: u64,
-}
-
-impl Hasher for IdentityHasher {
-    fn write(&mut self, bytes: &[u8]) {
-        // Expect exactly 4 bytes for u32 key
-
-        assert_eq!(bytes.len(), 4, "only allow u64");
-        self.hash = u32::from_ne_bytes(bytes.try_into().unwrap()) as u64;
-        // if bytes.len() == 8 {
-        //     self.hash = u64::from_ne_bytes(bytes.try_into().unwrap());
-            
-        // }else {
-        //     self.hash = u32::from_ne_bytes(bytes.try_into().unwrap()) as u64;
-        // }
-
-        
-    }
-
-    fn finish(&self) -> u64 {
-        self.hash
-    }
-}
-
-#[derive(Default, Clone)]
- pub struct IdentityBuildHasher;
-
-impl BuildHasher for IdentityBuildHasher {
-    type Hasher = IdentityHasher;
-
-    fn build_hasher(&self) -> Self::Hasher {
-        IdentityHasher::default()
-    }
-}
 
 
 

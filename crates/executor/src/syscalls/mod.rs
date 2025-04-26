@@ -21,6 +21,7 @@ use hashbrown::HashMap;
 pub use code::*;
 pub use context::*;
 use hint::{HintLenSyscall, HintReadSyscall};
+use nohash_hasher::BuildNoHashHasher;
 use precompiles::{
     edwards::{add::EdwardsAddAssignSyscall, decompress::EdwardsDecompressSyscall},
     fptower::{Fp2AddSubSyscall, Fp2MulSyscall, FpOpSyscall},
@@ -77,8 +78,8 @@ pub trait Syscall: Send + Sync {
 /// Creates the default syscall map.
 #[must_use]
 #[allow(clippy::too_many_lines)]
-pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
-    let mut syscall_map = HashMap::<SyscallCode, Arc<dyn Syscall>>::default();
+pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>, BuildNoHashHasher<u32>> {
+    let mut syscall_map = HashMap::<SyscallCode, Arc<dyn Syscall>, BuildNoHashHasher<u32>>::with_capacity_and_hasher(40, BuildNoHashHasher::default());
 
     syscall_map.insert(SyscallCode::HALT, Arc::new(HaltSyscall));
 

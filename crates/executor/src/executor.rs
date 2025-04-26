@@ -47,7 +47,7 @@ pub struct Executor<'a> {
     pub max_syscall_cycles: u32,
 
     /// The mapping between syscall codes and their implementations.
-    pub syscall_map: HashMap<SyscallCode, Arc<dyn Syscall>>,
+    pub syscall_map: HashMap<SyscallCode, Arc<dyn Syscall>, BuildNoHashHasher<u32>>,
 
     /// Memory addresses that were touched in this batch of shards. Used to minimize the size of
     /// checkpoints.
@@ -178,7 +178,7 @@ impl<'a> Executor<'a> {
             state: ExecutionState::new(program.pc_start),
             program,
             cycle_tracker: HashMap::new(),
-            io_buf: HashMap::with_hasher(BuildNoHashHasher::default()),
+            io_buf: HashMap::default(),
             trace_buf,
             unconstrained: false,
             unconstrained_state: ForkState::default(),
@@ -188,9 +188,9 @@ impl<'a> Executor<'a> {
             print_report: false,
             hook_registry,
             max_cycles: context.max_cycles,
-            memory_checkpoint: HashMap::with_hasher(BuildNoHashHasher::default()),
-            uninitialized_memory_checkpoint: HashMap::with_hasher(BuildNoHashHasher::default()),
-            local_memory_access: HashMap::with_hasher(BuildNoHashHasher::default()),
+            memory_checkpoint: HashMap::default(),
+            uninitialized_memory_checkpoint: HashMap::default(),
+            local_memory_access: HashMap::default(),
             maximal_shapes: None,
         }
     }

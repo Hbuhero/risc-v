@@ -11,6 +11,7 @@ pub use edwards::*;
 pub use fptower::*;
 use hashbrown::HashMap;
 pub use keccak256_permute::*;
+use nohash_hasher::BuildNoHashHasher;
 use serde::{Deserialize, Serialize};
 pub use sha256_compress::*;
 pub use sha256_extend::*;
@@ -130,12 +131,12 @@ impl PrecompileLocalMemory for Vec<(SyscallEvent, PrecompileEvent)> {
 /// A record of all the precompile events.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PrecompileEvents {
-    events: HashMap<SyscallCode, Vec<(SyscallEvent, PrecompileEvent)>>,
+    events: HashMap<SyscallCode, Vec<(SyscallEvent, PrecompileEvent)>, BuildNoHashHasher<u64>>,
 }
 
 impl Default for PrecompileEvents {
     fn default() -> Self {
-        let mut events = HashMap::new();
+        let mut events = HashMap::with_capacity_and_hasher(40, BuildNoHashHasher::default());
         for syscall_code in SyscallCode::iter() {
             if syscall_code.should_send() == 1 {
                 events.insert(syscall_code, Vec::new());

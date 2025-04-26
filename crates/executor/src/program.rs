@@ -35,7 +35,7 @@ impl Program {
             instructions,
             pc_start,
             pc_base,
-            memory_image: HashMap::with_hasher(BuildNoHashHasher::default()),
+            memory_image: HashMap::default(),
         }
     }
 

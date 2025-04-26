@@ -51,7 +51,7 @@ pub struct ExecutionState {
     pub public_values_stream_ptr: usize,
 
     /// Keeps track of how many times a certain syscall has been called.
-    pub syscall_counts: HashMap<SyscallCode, u64>,
+    pub syscall_counts: HashMap<SyscallCode, u64, BuildNoHashHasher<u64>>,
 }
 
 impl ExecutionState {
@@ -64,14 +64,14 @@ impl ExecutionState {
             current_shard: 1,
             clk: 0,
             pc: pc_start,
-            memory: HashMap::with_hasher(BuildNoHashHasher::default()),
-            uninitialized_memory: HashMap::with_hasher(BuildNoHashHasher::default()),
+            memory: HashMap::default(),
+            uninitialized_memory: HashMap::default(),
             input_stream: Vec::new(),
             input_stream_ptr: 0,
             public_values_stream: Vec::new(),
             public_values_stream_ptr: 0,
             proof_stream_ptr: 0,
-            syscall_counts: HashMap::new(),
+            syscall_counts: HashMap::with_capacity_and_hasher(40, BuildNoHashHasher::default()),
         }
     }
 }
