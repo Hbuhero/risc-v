@@ -74,8 +74,12 @@ pub struct IdentityHasher {
 impl Hasher for IdentityHasher {
     fn write(&mut self, bytes: &[u8]) {
         // Expect exactly 8 bytes for u64 key
-        assert_eq!(bytes.len(), 8, "IdentityHasher only supports u64 keys");
-        self.hash = u64::from_ne_bytes(bytes.try_into().unwrap());
+        if bytes.len() == 8 {
+            self.hash = u64::from_ne_bytes(bytes.try_into().unwrap());
+            
+        }else {
+            self.hash = u32::from_ne_bytes(bytes.try_into().unwrap()) as u64;
+        }
     }
 
     fn finish(&self) -> u64 {
