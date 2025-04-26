@@ -1,5 +1,6 @@
 use hashbrown::HashMap;
-use sp1_primitives::types::{IdentityBuildHasher};
+use nohash_hasher::BuildNoHashHasher;
+
 
 use crate::{
     events::{LookupId, MemoryLocalEvent, MemoryReadRecord, MemoryWriteRecord},
@@ -23,7 +24,7 @@ pub struct SyscallContext<'a, 'b: 'a> {
     /// The syscall lookup id.
     pub syscall_lookup_id: LookupId,
     /// The local memory access events for the syscall.
-    pub local_memory_access: HashMap<u32, MemoryLocalEvent, IdentityBuildHasher>,
+    pub local_memory_access: HashMap<u32, MemoryLocalEvent, BuildNoHashHasher<u32>>,
 }
 
 impl<'a, 'b> SyscallContext<'a, 'b> {
@@ -38,7 +39,7 @@ impl<'a, 'b> SyscallContext<'a, 'b> {
             exit_code: 0,
             rt: runtime,
             syscall_lookup_id: LookupId::default(),
-            local_memory_access: HashMap::with_hasher(IdentityBuildHasher),
+            local_memory_access: HashMap::with_hasher(BuildNoHashHasher::default()),
         }
     }
 

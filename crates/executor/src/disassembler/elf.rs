@@ -7,7 +7,8 @@ use elf::{
     ElfBytes,
 };
 use hashbrown::HashMap;
-use sp1_primitives::{consts::{MAXIMUM_MEMORY_SIZE, WORD_SIZE}, types::IdentityBuildHasher};
+use nohash_hasher::BuildNoHashHasher;
+use sp1_primitives::consts::{MAXIMUM_MEMORY_SIZE, WORD_SIZE};
 
 /// RISC-V 32IM ELF (Executable and Linkable Format) File.
 ///
@@ -27,7 +28,7 @@ pub(crate) struct Elf {
     /// The base address of the program.
     pub(crate) pc_base: u32,
     /// The initial memory image, useful for global constants.
-    pub(crate) memory_image: HashMap<u32, u32, IdentityBuildHasher>,
+    pub(crate) memory_image: HashMap<u32, u32, BuildNoHashHasher<u32>>,
 }
 
 impl Elf {
@@ -37,7 +38,7 @@ impl Elf {
         instructions: Vec<u32>,
         pc_start: u32,
         pc_base: u32,
-        memory_image: HashMap<u32, u32, IdentityBuildHasher>,
+        memory_image: HashMap<u32, u32, BuildNoHashHasher<u32>>,
     ) -> Self {
         Self {
             instructions,
@@ -56,7 +57,7 @@ impl Elf {
     ///
     /// Reference: [Executable and Linkable Format](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)
     pub(crate) fn decode(input: &[u8]) -> eyre::Result<Self> {
-        let mut image: HashMap<u32, u32, IdentityBuildHasher> = HashMap::with_hasher(IdentityBuildHasher);
+        let mut image: HashMap<u32, u32, BuildNoHashHasher<u32>> = HashMap::with_hasher(BuildNoHashHasher::default());
 
         // Parse the ELF file assuming that it is little-endian..
         let elf = ElfBytes::<LittleEndian>::minimal_parse(input)?;

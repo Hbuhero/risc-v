@@ -5,6 +5,7 @@ use std::{
 };
 
 use hashbrown::{hash_map::Entry, HashMap};
+use nohash_hasher::BuildNoHashHasher;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use crate::{
@@ -19,7 +20,6 @@ use crate::{
     Instruction, Opcode, Program, Register,
 };
 
-use sp1_primitives::types::IdentityBuildHasher;
 
 /// An executor for the SP1 RISC-V zkVM.
 ///
@@ -51,11 +51,11 @@ pub struct Executor<'a> {
 
     /// Memory addresses that were touched in this batch of shards. Used to minimize the size of
     /// checkpoints.
-    pub memory_checkpoint: HashMap<u32, Option<MemoryRecord>, IdentityBuildHasher>,
+    pub memory_checkpoint: HashMap<u32, Option<MemoryRecord>, BuildNoHashHasher<u32>>,
 
     /// Memory addresses that were initialized in this batch of shards. Used to minimize the size of
     /// checkpoints. The value stored is whether or not it had a value at the beginning of the batch.
-    pub uninitialized_memory_checkpoint: HashMap<u32, bool, IdentityBuildHasher>,
+    pub uninitialized_memory_checkpoint: HashMap<u32, bool, BuildNoHashHasher<u32>>,
 
     /// The maximum number of cpu cycles to use for execution.
     pub max_cycles: Option<u64>,
@@ -64,13 +64,13 @@ pub struct Executor<'a> {
     pub state: ExecutionState,
 
     /// Local memory access events.
-    pub local_memory_access: HashMap<u32, MemoryLocalEvent, IdentityBuildHasher>,
+    pub local_memory_access: HashMap<u32, MemoryLocalEvent, BuildNoHashHasher<u32>>,
 
     /// A counter for the number of cycles that have been executed in certain functions.
     pub cycle_tracker: HashMap<String, (u64, u32)>,
 
     /// A buffer for stdout and stderr IO.
-    pub io_buf: HashMap<u32, String, IdentityBuildHasher>,
+    pub io_buf: HashMap<u32, String, BuildNoHashHasher<u32>>,
 
     /// A buffer for writing trace events to a file.
     pub trace_buf: Option<BufWriter<File>>,
@@ -178,7 +178,7 @@ impl<'a> Executor<'a> {
             state: ExecutionState::new(program.pc_start),
             program,
             cycle_tracker: HashMap::new(),
-            io_buf: HashMap::with_hasher(IdentityBuildHasher),
+            io_buf: HashMap::with_hasher(BuildNoHashHasher::default()),
             trace_buf,
             unconstrained: false,
             unconstrained_state: ForkState::default(),
@@ -188,9 +188,9 @@ impl<'a> Executor<'a> {
             print_report: false,
             hook_registry,
             max_cycles: context.max_cycles,
-            memory_checkpoint: HashMap::with_hasher(IdentityBuildHasher),
-            uninitialized_memory_checkpoint: HashMap::with_hasher(IdentityBuildHasher),
-            local_memory_access: HashMap::with_hasher(IdentityBuildHasher),
+            memory_checkpoint: HashMap::with_hasher(BuildNoHashHasher::default()),
+            uninitialized_memory_checkpoint: HashMap::with_hasher(BuildNoHashHasher::default()),
+            local_memory_access: HashMap::with_hasher(BuildNoHashHasher::default()),
             maximal_shapes: None,
         }
     }
@@ -332,7 +332,7 @@ impl<'a> Executor<'a> {
         addr: u32,
         shard: u32,
         timestamp: u32,
-        local_memory_access: Option<&mut HashMap<u32, MemoryLocalEvent, IdentityBuildHasher>>,
+        local_memory_access: Option<&mut HashMap<u32, MemoryLocalEvent, BuildNoHashHasher<u32>>>,
     ) -> MemoryReadRecord {
         // Get the memory record entry.
         let entry = self.state.memory.entry(addr);
@@ -420,7 +420,7 @@ impl<'a> Executor<'a> {
         value: u32,
         shard: u32,
         timestamp: u32,
-        local_memory_access: Option<&mut HashMap<u32, MemoryLocalEvent, IdentityBuildHasher>>,
+        local_memory_access: Option<&mut HashMap<u32, MemoryLocalEvent, BuildNoHashHasher<u32>>>,
     ) -> MemoryWriteRecord {
         // Get the memory record entry.
         let entry = self.state.memory.entry(addr);
