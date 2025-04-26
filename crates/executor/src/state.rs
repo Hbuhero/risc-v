@@ -5,6 +5,7 @@ use std::{
 
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
+use sp1_primitives::types::IdentityBuildHasher;
 
 use crate::{events::MemoryRecord, syscalls::SyscallCode, ExecutorMode};
 
@@ -20,7 +21,7 @@ pub struct ExecutionState {
 
     /// The memory which instructions operate over. Values contain the memory value and last shard
     /// + timestamp that each memory address was accessed.
-    pub memory: HashMap<u32, MemoryRecord>,
+    pub memory: HashMap<u32, MemoryRecord, IdentityBuildHasher>,
 
     /// The global clock keeps track of how many instructions have been executed through all shards.
     pub global_clk: u64,
@@ -31,7 +32,7 @@ pub struct ExecutionState {
 
     /// Uninitialized memory addresses that have a specific value they should be initialized with.
     /// `SyscallHintRead` uses this to write hint data into uninitialized memory.
-    pub uninitialized_memory: HashMap<u32, u32>,
+    pub uninitialized_memory: HashMap<u32, u32, IdentityBuildHasher>,
 
     /// A stream of input values (global to the entire program).
     pub input_stream: Vec<Vec<u8>>,
@@ -50,7 +51,7 @@ pub struct ExecutionState {
     pub public_values_stream_ptr: usize,
 
     /// Keeps track of how many times a certain syscall has been called.
-    pub syscall_counts: HashMap<SyscallCode, u64>,
+    pub syscall_counts: HashMap<SyscallCode, u64, IdentityBuildHasher>,
 }
 
 impl ExecutionState {
@@ -63,14 +64,14 @@ impl ExecutionState {
             current_shard: 1,
             clk: 0,
             pc: pc_start,
-            memory: HashMap::new(),
-            uninitialized_memory: HashMap::new(),
+            memory: HashMap::with_hasher(IdentityBuildHasher),
+            uninitialized_memory: HashMap::with_hasher(IdentityBuildHasher),
             input_stream: Vec::new(),
             input_stream_ptr: 0,
             public_values_stream: Vec::new(),
             public_values_stream_ptr: 0,
             proof_stream_ptr: 0,
-            syscall_counts: HashMap::new(),
+            syscall_counts: HashMap::with_hasher(IdentityBuildHasher),
         }
     }
 }

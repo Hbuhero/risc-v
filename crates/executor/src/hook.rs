@@ -4,6 +4,7 @@ use std::sync::{Arc, RwLock, RwLockWriteGuard};
 
 use hashbrown::HashMap;
 use sp1_curves::k256::{Invert, RecoveryId, Signature, VerifyingKey};
+use sp1_primitives::types::IdentityBuildHasher;
 
 use crate::Executor;
 
@@ -42,7 +43,7 @@ pub fn hookify<'a>(
 pub struct HookRegistry<'a> {
     /// Table of registered hooks. Prefer using `Runtime::hook`, ` Runtime::hook_env`,
     /// and `HookRegistry::get` over interacting with this field directly.
-    pub(crate) table: HashMap<u32, BoxedHook<'a>>,
+    pub(crate) table: HashMap<u32, BoxedHook<'a>, IdentityBuildHasher>,
 }
 
 impl<'a> HookRegistry<'a> {
@@ -56,7 +57,7 @@ impl<'a> HookRegistry<'a> {
     #[must_use]
     pub fn empty() -> Self {
         Self {
-            table: HashMap::default(),
+            table: HashMap::with_hasher(IdentityBuildHasher),
         }
     }
 
@@ -74,11 +75,8 @@ impl<'a> HookRegistry<'a> {
 impl Default for HookRegistry<'_> {
     fn default() -> Self {
         // When `LazyCell` gets stabilized (1.81.0), we can use it to avoid unnecessary allocations.
-        let table = HashMap::from([
-            // Note: To ensure any `fd` value is synced with `zkvm/precompiles/src/io.rs`,
-            // add an assertion to the test `hook_fds_match` below.
-            (FD_ECRECOVER_HOOK, hookify(hook_ecrecover)),
-        ]);
+        let mut table = HashMap::with_hasher(IdentityBuildHasher);
+        table.insert(FD_ECRECOVER_HOOK, hookify(hook_ecrecover));
 
         Self { table }
     }
