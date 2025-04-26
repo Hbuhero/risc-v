@@ -4,6 +4,7 @@ use std::{fs::File, io::Read};
 
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
+use sp1_primitives::types::IdentityBuildHasher;
 
 use crate::{
     disassembler::{transpile, Elf},
@@ -23,7 +24,7 @@ pub struct Program {
     /// The base address of the program.
     pub pc_base: u32,
     /// The initial memory image, useful for global constants.
-    pub memory_image: HashMap<u32, u32>,
+    pub memory_image: HashMap<u32, u32, IdentityBuildHasher>,
 }
 
 impl Program {
@@ -34,7 +35,7 @@ impl Program {
             instructions,
             pc_start,
             pc_base,
-            memory_image: HashMap::new(),
+            memory_image: HashMap::with_hasher(IdentityBuildHasher),
         }
     }
 

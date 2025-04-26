@@ -1,5 +1,4 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use hashbrown::HashMap;
 use std::hash::{BuildHasher, Hasher};
 
 #[derive(Debug, Clone, Copy)]
@@ -87,7 +86,7 @@ impl Hasher for IdentityHasher {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
  pub struct IdentityBuildHasher;
 
 impl BuildHasher for IdentityBuildHasher {
