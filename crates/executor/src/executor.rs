@@ -47,7 +47,7 @@ pub struct Executor<'a> {
     pub max_syscall_cycles: u32,
 
     /// The mapping between syscall codes and their implementations.
-    pub syscall_map: HashMap<SyscallCode, Arc<dyn Syscall>, IdentityBuildHasher>,
+    pub syscall_map: HashMap<SyscallCode, Arc<dyn Syscall>>,
 
     /// Memory addresses that were touched in this batch of shards. Used to minimize the size of
     /// checkpoints.

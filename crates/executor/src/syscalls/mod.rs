@@ -79,8 +79,8 @@ pub trait Syscall: Send + Sync {
 /// Creates the default syscall map.
 #[must_use]
 #[allow(clippy::too_many_lines)]
-pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>, IdentityBuildHasher> {
-    let mut syscall_map = HashMap::<SyscallCode, Arc<dyn Syscall>, IdentityBuildHasher>::with_hasher(IdentityBuildHasher);
+pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
+    let mut syscall_map = HashMap::<SyscallCode, Arc<dyn Syscall>>::default();
 
     syscall_map.insert(SyscallCode::HALT, Arc::new(HaltSyscall));
 

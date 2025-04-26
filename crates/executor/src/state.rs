@@ -51,7 +51,7 @@ pub struct ExecutionState {
     pub public_values_stream_ptr: usize,
 
     /// Keeps track of how many times a certain syscall has been called.
-    pub syscall_counts: HashMap<SyscallCode, u64, IdentityBuildHasher>,
+    pub syscall_counts: HashMap<SyscallCode, u64>,
 }
 
 impl ExecutionState {
@@ -71,7 +71,7 @@ impl ExecutionState {
             public_values_stream: Vec::new(),
             public_values_stream_ptr: 0,
             proof_stream_ptr: 0,
-            syscall_counts: HashMap::with_hasher(IdentityBuildHasher),
+            syscall_counts: HashMap::new(),
         }
     }
 }
@@ -87,7 +87,7 @@ pub struct ForkState {
     /// The original `pc` value at the fork point.
     pub pc: u32,
     /// All memory changes since the fork point.
-    pub memory_diff: HashMap<u32, Option<MemoryRecord>>,
+    pub memory_diff: HashMap<u32, Option<MemoryRecord>, IdentityBuildHasher>,
     // /// The original memory access record at the fork point.
     // pub op_record: MemoryAccessRecord,
     // /// The original execution record at the fork point.
