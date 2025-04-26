@@ -57,7 +57,7 @@ impl Elf {
     ///
     /// Reference: [Executable and Linkable Format](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)
     pub(crate) fn decode(input: &[u8]) -> eyre::Result<Self> {
-        let mut image: HashMap<u32, u32, BuildNoHashHasher<u32>> = HashMap::default();
+        let mut image: HashMap<u32, u32, BuildNoHashHasher<u32>> = HashMap::with_capacity_and_hasher(40, BuildNoHashHasher::default());
 
         // Parse the ELF file assuming that it is little-endian..
         let elf = ElfBytes::<LittleEndian>::minimal_parse(input)?;

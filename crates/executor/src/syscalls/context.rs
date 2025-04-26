@@ -39,7 +39,7 @@ impl<'a, 'b> SyscallContext<'a, 'b> {
             exit_code: 0,
             rt: runtime,
             syscall_lookup_id: LookupId::default(),
-            local_memory_access: HashMap::with_hasher(BuildNoHashHasher::default()),
+            local_memory_access: HashMap::with_capacity_and_hasher(40, BuildNoHashHasher::default()),
         }
     }
 

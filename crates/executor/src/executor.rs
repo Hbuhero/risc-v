@@ -188,9 +188,9 @@ impl<'a> Executor<'a> {
             print_report: false,
             hook_registry,
             max_cycles: context.max_cycles,
-            memory_checkpoint: HashMap::default(),
-            uninitialized_memory_checkpoint: HashMap::default(),
-            local_memory_access: HashMap::default(),
+            memory_checkpoint: HashMap::with_capacity_and_hasher(40, BuildNoHashHasher::default()),
+            uninitialized_memory_checkpoint: HashMap::with_capacity_and_hasher(40, BuildNoHashHasher::default()),
+            local_memory_access: HashMap::with_capacity_and_hasher(40, BuildNoHashHasher::default()),
             maximal_shapes: None,
         }
     }
