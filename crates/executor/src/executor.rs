@@ -4,10 +4,6 @@ use std::{
     sync::Arc,
 };
 
-use hashbrown::{hash_map::Entry, HashMap};
-use nohash_hasher::BuildNoHashHasher;
-use serde::{Deserialize, Serialize};
-use thiserror::Error;
 use crate::{
     context::SP1Context,
     events::{
@@ -15,11 +11,15 @@ use crate::{
         MemoryRecord, MemoryWriteRecord,
     },
     hook::{HookEnv, HookRegistry},
+    pipeline,
     state::{ExecutionState, ForkState},
     syscalls::{default_syscall_map, Syscall, SyscallCode, SyscallContext},
-    Instruction, Opcode, Program, Register,
+    Instruction, InstructionPipeline, Opcode, Program, Register,
 };
-
+use hashbrown::{hash_map::Entry, HashMap};
+use nohash_hasher::BuildNoHashHasher;
+use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 /// An executor for the SP1 RISC-V zkVM.
 ///
@@ -189,8 +189,14 @@ impl<'a> Executor<'a> {
             hook_registry,
             max_cycles: context.max_cycles,
             memory_checkpoint: HashMap::with_capacity_and_hasher(40, BuildNoHashHasher::default()),
-            uninitialized_memory_checkpoint: HashMap::with_capacity_and_hasher(40, BuildNoHashHasher::default()),
-            local_memory_access: HashMap::with_capacity_and_hasher(40, BuildNoHashHasher::default()),
+            uninitialized_memory_checkpoint: HashMap::with_capacity_and_hasher(
+                40,
+                BuildNoHashHasher::default(),
+            ),
+            local_memory_access: HashMap::with_capacity_and_hasher(
+                40,
+                BuildNoHashHasher::default(),
+            ),
             maximal_shapes: None,
         }
     }
@@ -977,19 +983,55 @@ impl<'a> Executor<'a> {
         Ok(())
     }
 
+    #[inline]
+    #[allow(clippy::too_many_lines)]
+    fn emulate_with_prefetch(&mut self) {
+        // In Executor struct
+        let mut pipeline = InstructionPipeline::new();
+
+        // Then in execute_cycle
+        if pipeline.is_empty() {
+            pipeline.prefetch(self);
+        }
+
+        let instruction = if let Some(instr) = pipeline.pop() {
+            instr
+        } else {
+            self.fetch()
+        };
+
+        // Execute instruction...
+        self.execute_instruction(&instruction);
+
+        let current_pc = self.state.pc;
+
+        // If this was a branch, update the predictor with actual outcome
+        if pipeline::is_control_flow_instruction(instruction.opcode) {
+            let branch_taken = self.state.pc != current_pc + 4;
+            pipeline.update_branch_predictor(current_pc, branch_taken);
+
+            // If branch was taken, clear the pipeline as our prediction might be wrong
+            if branch_taken {
+                pipeline.clear();
+            }
+        }
+    }
+
     /// Executes one cycle of the program, returning whether the program has finished.
     #[inline]
     #[allow(clippy::too_many_lines)]
     fn execute_cycle(&mut self) -> Result<bool, ExecutionError> {
         // Fetch the instruction at the current program counter.
-        let instruction = self.fetch();
+        // let instruction = self.fetch();
 
-        // Log the current state of the runtime.
-        #[cfg(debug_assertions)]
-        self.log(&instruction);
+        // // Log the current state of the runtime.
+        // #[cfg(debug_assertions)]
+        // self.log(&instruction);
 
-        // Execute the instruction.
-        self.execute_instruction(&instruction)?;
+        // // Execute the instruction.
+        // self.execute_instruction(&instruction)?;
+
+        self.emulate_with_prefetch();
 
         // Increment the clock.
         self.state.global_clk += 1;

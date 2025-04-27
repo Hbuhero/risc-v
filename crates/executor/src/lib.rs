@@ -32,6 +32,7 @@ mod register;
 mod state;
 pub mod syscalls;
 mod utils;
+mod pipeline;
 
 pub use context::*;
 pub use executor::*;
@@ -42,3 +43,4 @@ pub use program::*;
 pub use register::*;
 pub use state::*;
 pub use utils::*;
+pub use pipeline::*;
